@@ -26,7 +26,7 @@ This application is intended for use with the \ADESADorothyBase Folder. If that 
 9. Drop the output file in the below Sharepoint library and you're done!
     - https://karauctionservicesinc.sharepoint.com/sites/ADESADorothy/Shared%20Documents/Forms/AllItems.aspx?viewid=acc098f4%2D5951%2D4f2b%2Db6ed%2D987416efc603&id=%2Fsites%2FADESADorothy%2FShared%20Documents%2FCsvFileDrop
 
-### Author <a name = "author"></a>
+## Author <a name = "author"></a>
 
 Author: Byron Slabach
 Title:  Application Developer
