@@ -1,15 +1,44 @@
 import glob, os, json, datetime as dt, math, time
 import pandas as pd
 import numpy as np
+import tkinter as tk
+from tkinter import filedialog
 
 
-class App:
-    def __init__(self, base_directory, input_path, output_file, master_path):
-        self.input_path = input_path
-        self.output_file = output_file
-        self.master_path = master_path
-        self.cur_dir = base_directory
+class App(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.max_width = 55
+        self.file_to_process = 'File to process...'
+        self.parent = parent
         self.sleep_time = 1
+        #region Build Window
+        self.winfo_toplevel().title("CSV Processor")
+
+        self.top_label = tk.Label(parent,
+                                  text="Select a file for processing...",
+                                  font=20,
+                                  width=self.max_width)
+        self.top_label.grid(row=0,
+                            column=0,
+                            columnspan=self.max_width)
+        self.select_button = tk.Button(parent,
+                                       text='Browse Files',
+                                       bg="AntiqueWhite1",
+                                       width=10,
+                                       height=2,
+                                       command=self.upload_action)
+        self.select_button.grid(row=2, column=(self.max_width - 15))
+        # print(select_button.fileName)
+        # file_to_process = select_button.Get()
+        self.entry_box = tk.Label(parent,
+                                  text=self.file_to_process,
+                                  bg="White",
+                                  width=(self.max_width),
+                                  height=2,
+                                  justify='left')
+        self.entry_box.grid(row=2, column=5)
+        #endregion
 
     @staticmethod
     def cleanup_output(path):
@@ -42,7 +71,7 @@ class App:
 
         return ret_val
 
-    def compare_master(self):
+    def compare_master(self, new):
         vtrace = self.get_latest()
         master = self.get_master()
         print('Removing existing jobs...')
@@ -174,6 +203,9 @@ class App:
                     "date_added": today.strftime("%m/%d/%Y")
                 }, ignore_index=True)
 
+        return_object = {
+            'new': vtrace_min.shape[0],
+        }
         print("------------------")
         print(f"{vtrace_min.shape[0]} new jobs added. ")
         time.sleep(self.sleep_time)
@@ -188,44 +220,79 @@ class App:
         for f in files_processed:
             os.remove(f)
 
+        return return_object
+
+    def upload_action(self, event=None):
+        filename = filedialog.askopenfilename()
+        vtrace_import = pd.read_csv(filename, parse_dates=True)
+        # comp_result = self.compare_master(vtrace_import)
+        self.update_filename(filename)
+        print('Selected:', vtrace_import.shape[0])
+
+    def update_filename(self, text):
+        self.entry_box.config(text=text)
+
+
+# def main():
+#     config_file_name = 'config.json'
+#     if not os.path.exists(config_file_name):
+#         check_create = open(config_file_name, 'w')
+#         check_create.close()
+#
+#     try:
+#         with open(config_file_name, "r") as settings_file:
+#             settings_json = json.load(settings_file)
+#     except:
+#         user_input = input("This is your first time running this application. Please paste in the Windows Explorer path for where you have placed the ADESADorothyBase folder: ")
+#         default_settings = {
+#             'base_url': user_input
+#         }
+#         with open(config_file_name, 'w') as write_defaults:
+#             json.dump(default_settings, write_defaults, ensure_ascii=False, indent=4)
+#         with open(config_file_name, "r") as settings_file:
+#             settings_json = json.load(settings_file)
+#
+#     root = tk.Tk()
+#     root.geometry("500x100")
+#     root.resizable(False, False)
+#     a = App(root)
+#
+#     #region build frame
+#
+#     #endregion
+#
+#     a.mainloop()
+#
+#     #region old
+#     # base_url = settings_json['base_url']
+#     # print(f"Working Folder: {base_url}")
+#     # master_path = base_url + '\\resources\\master.csv'
+#     # input_path = base_url + '\\ToProcess\\'
+#     # output_path = base_url + '\\Output\\'
+#     # output_file = output_path + 'Vtrace_Min_'+dt.datetime.now().strftime("%m_%d_%Y_%H_%M")+'.csv'
+#     #
+#     # a = App(base_url, input_path, output_file, master_path)
+#     # a.cleanup_output(output_path)
+#     # a.compare_master()
+#     # settings_file.close()
+#     # print("------------------")
+#     # print("Finished! You may now drop the output file into Sharepoint to be added to the Dorothy database")
+#     # os.startfile(output_path)
+#     # time.sleep(10)
+#     # # endregion
+#
+#
+# if __name__ == "__main__":
+#     main()
 
 def main():
-    # region define constants
-    config_file_name = 'config.json'
-    if not os.path.exists(config_file_name):
-        check_create = open(config_file_name, 'w')
-        check_create.close()
-
-    try:
-        with open(config_file_name, "r") as settings_file:
-            settings_json = json.load(settings_file)
-    except:
-        user_input = input("This is your first time running this application. Please paste in the Windows Explorer path for where you have placed the ADESADorothyBase folder: ")
-        default_settings = {
-            'base_url': user_input
-        }
-        with open(config_file_name, 'w') as write_defaults:
-            json.dump(default_settings, write_defaults, ensure_ascii=False, indent=4)
-        with open(config_file_name, "r") as settings_file:
-            settings_json = json.load(settings_file)
-
-    base_url = settings_json['base_url']
-    print(f"Working Folder: {base_url}")
-    master_path = base_url + '\\resources\\master.csv'
-    input_path = base_url + '\\ToProcess\\'
-    output_path = base_url + '\\Output\\'
-    output_file = output_path + 'Vtrace_Min_'+dt.datetime.now().strftime("%m_%d_%Y_%H_%M")+'.csv'
-    # endregion
-
-    a = App(base_url, input_path, output_file, master_path)
-    a.cleanup_output(output_path)
-    a.compare_master()
-    settings_file.close()
-    print("------------------")
-    print("Finished! You may now drop the output file into Sharepoint to be added to the Dorothy database")
-    os.startfile(output_path)
-    time.sleep(10)
+    root = tk.Tk()
+    root.geometry("500x100")
+    root.resizable(False, False)
+    a = App(root)
+    root.mainloop()
 
 
+# runs main function
 if __name__ == "__main__":
     main()
