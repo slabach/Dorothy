@@ -6,12 +6,13 @@ from tkinter import filedialog
 
 
 class App(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, config, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.max_width = 55
         self.file_to_process = 'File to process...'
         self.parent = parent
         self.sleep_time = 1
+        self.config = config
         #region Build Window
         self.winfo_toplevel().title("CSV Processor")
 
@@ -46,18 +47,19 @@ class App(tk.Frame):
         for f in out_files:
             os.remove(f)
 
-    def get_latest(self):
-        print('Getting latest report for processing...')
-        time.sleep(self.sleep_time)
-        list_of_files = glob.glob(self.input_path + '\\*')
-        latest_file = max(list_of_files, key=os.path.getctime)
-        vtrace_import = pd.read_csv(latest_file, parse_dates=True)
-        return vtrace_import
+    # def get_latest(self):
+    #     print('Getting latest report for processing...')
+    #     time.sleep(self.sleep_time)
+    #     list_of_files = glob.glob(self.input_path + '\\*')
+    #     latest_file = max(list_of_files, key=os.path.getctime)
+    #     vtrace_import = pd.read_csv(latest_file, parse_dates=True)
+    #     return vtrace_import
 
     def get_master(self):
         print('Getting data from master file...')
         time.sleep(self.sleep_time)
-        master = pd.read_csv(self.master_path)
+        master_file = self.config.base_url + '\\resources\\master.csv'
+        master = pd.read_csv(master_file)
         return master
 
     @staticmethod
@@ -72,7 +74,7 @@ class App(tk.Frame):
         return ret_val
 
     def compare_master(self, new):
-        vtrace = self.get_latest()
+        vtrace = new
         master = self.get_master()
         print('Removing existing jobs...')
         time.sleep(self.sleep_time)
@@ -234,23 +236,6 @@ class App(tk.Frame):
 
 
 # def main():
-#     config_file_name = 'config.json'
-#     if not os.path.exists(config_file_name):
-#         check_create = open(config_file_name, 'w')
-#         check_create.close()
-#
-#     try:
-#         with open(config_file_name, "r") as settings_file:
-#             settings_json = json.load(settings_file)
-#     except:
-#         user_input = input("This is your first time running this application. Please paste in the Windows Explorer path for where you have placed the ADESADorothyBase folder: ")
-#         default_settings = {
-#             'base_url': user_input
-#         }
-#         with open(config_file_name, 'w') as write_defaults:
-#             json.dump(default_settings, write_defaults, ensure_ascii=False, indent=4)
-#         with open(config_file_name, "r") as settings_file:
-#             settings_json = json.load(settings_file)
 #
 #     root = tk.Tk()
 #     root.geometry("500x100")
@@ -286,10 +271,28 @@ class App(tk.Frame):
 #     main()
 
 def main():
+    config_file_name = 'config.json'
+    if not os.path.exists(config_file_name):
+        check_create = open(config_file_name, 'w')
+        check_create.close()
+
+    try:
+        with open(config_file_name, "r") as settings_file:
+            settings_json = json.load(settings_file)
+    except:
+        user_input = input("This is your first time running this application. Please paste in the Windows Explorer path for where you have placed the ADESADorothyBase folder: ")
+        default_settings = {
+            'base_url': user_input
+        }
+        with open(config_file_name, 'w') as write_defaults:
+            json.dump(default_settings, write_defaults, ensure_ascii=False, indent=4)
+        with open(config_file_name, "r") as settings_file:
+            settings_json = json.load(settings_file)
+
     root = tk.Tk()
     root.geometry("500x100")
     root.resizable(False, False)
-    a = App(root)
+    a = App(root, settings_json)
     root.mainloop()
 
 
